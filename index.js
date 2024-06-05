@@ -4,16 +4,18 @@ import pg from 'pg';
 import bcrypt from 'bcrypt';
 import session from "express-session";
 import passport from "passport";
+import env from "dotenv";
 
 const app = express();
 const port = 3000;
 const saltRounds = 10;
+env.config();
 
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static("public"));
 
 app.use(session({
-  secret:"kaijuNo8",
+  secret:process.env.SESSION_SECRET,
   resave:false,
   saveUninitialized:true
 }));
@@ -22,11 +24,11 @@ app.use(passport.initialize());
 app.use(passport.session());
 
 const db = new pg.Client({
-  user : 'postgres',
-  host : 'localhost',
-  database : 'Auth',
-  password : 'Dellg15gaming',
-  port : 5432,
+  user : process.env.SESSION_USER,
+  host : process.env.SESSION_HOST,
+  database : process.env.SESSION_DB,
+  password : process.env.SESSION_PASSWORD,
+  port : process.env.SESSION_PORT,
 })
 db.connect();
 
