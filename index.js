@@ -2,10 +2,24 @@ import express from "express";
 import bodyParser from "body-parser";
 import pg from 'pg';
 import bcrypt from 'bcrypt';
+import session from "express-session";
+import passport from "passport";
 
 const app = express();
 const port = 3000;
 const saltRounds = 10;
+
+app.use(bodyParser.urlencoded({ extended: true }));
+app.use(express.static("public"));
+
+app.use(session({
+  secret:"kaijuNo8",
+  resave:false,
+  saveUninitialized:true
+}));
+
+app.use(passport.initialize());
+app.use(passport.session());
 
 const db = new pg.Client({
   user : 'postgres',
@@ -15,9 +29,6 @@ const db = new pg.Client({
   port : 5432,
 })
 db.connect();
-
-app.use(bodyParser.urlencoded({ extended: true }));
-app.use(express.static("public"));
 
 app.get("/", (req, res) => {
   res.render("home.ejs");
@@ -29,6 +40,18 @@ app.get("/login", (req, res) => {
 
 app.get("/register", (req, res) => {
   res.render("register.ejs");
+});
+
+app.get("/secrets",(req,res)=>
+{
+  if(req.isAuthenticated())
+  {
+    res.render("secrets.ejs");
+  }
+  else
+  {
+    res.redirect("login");
+  }
 });
 
 app.post("/register", async (req, res) => 
@@ -81,7 +104,8 @@ app.post("/login", async (req, res) =>
         const storedPassword = storedrow.password;
         //hashing checking:
 
-        bcrypt.compare(password,storedPassword,(err,result)=>{
+        bcrypt.compare(password,storedPassword,(err,result)=>
+        {
           if(err)
           {
             console.log("Error at login hashing: ",err);
